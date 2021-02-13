@@ -16,11 +16,11 @@ public class Graphic implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(columnDefinition = "serial")
-    private int id;
+    private Long id;
 
     private String name;
     private Integer width;
-    private Integer length;
+    private Integer height;
     private Boolean rezise;
     @Lob
     @Column(name = "image")

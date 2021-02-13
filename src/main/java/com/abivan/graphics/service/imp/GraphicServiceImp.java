@@ -1,27 +1,50 @@
 package com.abivan.graphics.service.imp;
 
+import com.abivan.graphics.repository.GraphicRepository;
 import com.abivan.graphics.service.GraphicService;
 import com.abivan.graphics.service.dto.GraphicDto;
+import com.abivan.graphics.service.transformer.GraphicTransformer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
-public class GraphicServiceImp implements GraphicService{
-    @Override
-    public GraphicDto save(MultipartFile file) throws IOException{
-        BufferedImage image = convertToImage(file);
+public class GraphicServiceImp implements GraphicService {
 
-        GraphicDto graphicDto = new GraphicDto();
-        graphicDto.setHeight(image.getHeight());
-        graphicDto.setWidth(image.getWidth());
-        graphicDto.setOrientation(orientation(graphicDto.getHeight(), graphicDto.getWidth()));
-        return graphicDto;
+    @Value("#{'${graphic.maxwidth}'}")
+    private int maxWidth;
+
+    @Value("#{'${graphic.maxheight}'}")
+    private int maxHeight;
+
+    @Autowired
+    GraphicRepository graphicRepository;
+
+    static final String PORTRAIT = "portrait";
+    static final String LANDSCAPE = "landscape";
+
+    @Override
+    public GraphicDto save(MultipartFile file) throws IOException {
+        BufferedImage image = convertToImage(file);
+        String orientation = orientation(image.getHeight(), image.getWidth());
+
+        if ((orientation.equals(PORTRAIT) && (image.getHeight() >= maxHeight || image.getWidth() >= maxWidth))
+        || (orientation.equals(LANDSCAPE) && (image.getHeight() >= maxWidth || image.getWidth() >= maxHeight))) {
+            List<Integer> newDimaensions = newDimension(image, orientation);
+            image = resize(image, newDimaensions.get(0), newDimaensions.get(1));
+        }
+        return GraphicTransformer.getGraphicDtoToImage(graphicRepository.save(GraphicTransformer.getGraphicToImage(image, file)), orientation);
     }
 
     private BufferedImage convertToImage(MultipartFile file) throws IOException {
@@ -29,10 +52,56 @@ public class GraphicServiceImp implements GraphicService{
         return ImageIO.read(in);
     }
 
-    public String orientation(int height, int width){
-        if(height<width){
-            return "landscape";
+    private static String orientation(int height, int width) {
+        if (height < width) {
+            return LANDSCAPE;
         }
-        return "portrait";
+        return PORTRAIT;
+    }
+
+    private List<Integer> newDimension(BufferedImage image, String orientation) {
+        List<Integer> list = new ArrayList<>();
+        int newWidth;
+        int newHeight;
+        float ratio = (float) image.getWidth() / image.getHeight();
+        if (orientation.equals(PORTRAIT)) {
+            if(image.getWidth()>maxWidth && image.getHeight()<maxHeight){
+                newWidth = maxWidth;
+                newHeight = calculeHeight(ratio, maxWidth);
+            } else {
+                newWidth = calculeWidth(ratio, maxHeight);
+                newHeight = maxHeight;
+            }
+        } else {
+            if(image.getWidth()>maxHeight && image.getHeight()<maxWidth){
+                newWidth = calculeWidth(ratio, maxWidth);
+                newHeight = maxWidth;
+            } else {
+                newWidth = maxHeight;
+                newHeight = calculeHeight(ratio, maxHeight);
+            }
+        }
+        list.add(newWidth);
+        list.add(newHeight);
+        return list;
+    }
+
+    private int calculeWidth(float ratio, int height) {
+        return (int) (height * ratio);
+    }
+
+    private int calculeHeight(float ratio, int width) {
+        return (int) (width / ratio);
+    }
+
+    private BufferedImage resize(BufferedImage image, int newWidth, int newHeight) {
+        int w = image.getWidth();
+        int h = image.getHeight();
+        BufferedImage newImage = new BufferedImage(newWidth, newHeight, image.getType());
+        Graphics2D g = newImage.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.drawImage(image, 0, 0, newWidth, newHeight, 0, 0, w, h, null);
+        g.dispose();
+        return newImage;
     }
 }

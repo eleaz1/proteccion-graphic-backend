@@ -9,20 +9,30 @@ import java.io.IOException;
 
 public class GraphicTransformer {
 
-    public static Graphic getGraphicToImage(BufferedImage image, MultipartFile file) throws IOException {
+    public static Graphic getGraphicToImage(BufferedImage image, MultipartFile file, String orientation) throws IOException {
         Graphic graphic = new Graphic();
         graphic.setImage(file.getBytes());
         graphic.setHeight(image.getHeight());
         graphic.setWidth(image.getWidth());
         graphic.setName(file.getOriginalFilename());
+        graphic.setOrientation(orientation);
         return graphic;
     }
 
-    public static GraphicDto getGraphicDtoToImage(Graphic graphic, String orientation) throws IOException {
+    public static GraphicDto getGraphicDtoToImage(Graphic graphic, String orientation) {
         GraphicDto graphicDto = new GraphicDto();
         graphicDto.setHeight(graphic.getHeight());
         graphicDto.setWidth(graphic.getWidth());
         graphicDto.setOrientation(orientation);
+        graphicDto.setImage(graphic.getImage());
+        return graphicDto;
+    }
+
+    public static GraphicDto getGraphicDtoToGraphic(Graphic graphic){
+        GraphicDto graphicDto = new GraphicDto();
+        graphicDto.setHeight(graphic.getHeight());
+        graphicDto.setWidth(graphic.getWidth());
+        graphicDto.setOrientation(graphic.getOrientation());
         graphicDto.setImage(graphic.getImage());
         return graphicDto;
     }

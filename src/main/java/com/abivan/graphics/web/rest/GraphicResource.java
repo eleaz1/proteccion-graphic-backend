@@ -10,7 +10,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -21,19 +24,29 @@ public class GraphicResource {
     GraphicService graphicService;
 
     @PostMapping("/graphic")
-    public ResponseEntity<GraphicDto> create(@RequestParam("file") MultipartFile file) throws GraphicException, IOException {
+    public ResponseEntity<Map<String, Object>> create(@RequestParam("file") MultipartFile file) throws IOException {
+        Map<String, Object> response = new HashMap<>();
         if(file.isEmpty()){
-            throw new GraphicException("error", 400, "El archivo no esta presente");
+            response.put("menssaje", "El archivo no esta presente");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
         if(!Objects.equals(file.getContentType(), "image/jpeg")){
-            throw new GraphicException("formato", 400, "El archivo no tiene la extensión solicitada");
+            response.put("menssaje", "El archivo no tiene la extensión solicitada");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(graphicService.save(file), HttpStatus.OK);
+        response.put("object",graphicService.save(file));
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/graphic/{id}")
-    public ResponseEntity<?> findById(@PathVariable Long id){
-    return null;
+    public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) throws GraphicException {
+        Map<String, Object> response = new HashMap<>();
+        Optional<GraphicDto> graphicDtoOptional = graphicService.findById(id);
+        if (!graphicDtoOptional.isPresent()){
+            throw new GraphicException(404, "El Gráfico no se encontro");
+        }
+        response.put("object", graphicDtoOptional.get());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }

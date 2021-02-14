@@ -22,6 +22,8 @@ public class Graphic implements Serializable {
     private Integer width;
     private Integer height;
     private Boolean rezise;
+    private String orientation;
+
     @Lob
     @Column(name = "image")
     private byte[] image;

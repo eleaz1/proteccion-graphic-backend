@@ -1,8 +1,10 @@
 package com.abivan.graphics.service.imp;
 
+import com.abivan.graphics.domain.Graphic;
 import com.abivan.graphics.repository.GraphicRepository;
 import com.abivan.graphics.service.GraphicService;
 import com.abivan.graphics.service.dto.GraphicDto;
+import com.abivan.graphics.service.errors.GraphicException;
 import com.abivan.graphics.service.transformer.GraphicTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GraphicServiceImp implements GraphicService {
@@ -44,7 +47,7 @@ public class GraphicServiceImp implements GraphicService {
             List<Integer> newDimaensions = newDimension(image, orientation);
             image = resize(image, newDimaensions.get(0), newDimaensions.get(1));
         }
-        return GraphicTransformer.getGraphicDtoToImage(graphicRepository.save(GraphicTransformer.getGraphicToImage(image, file)), orientation);
+        return GraphicTransformer.getGraphicDtoToImage(graphicRepository.save(GraphicTransformer.getGraphicToImage(image, file, orientation)), orientation);
     }
 
     private BufferedImage convertToImage(MultipartFile file) throws IOException {
@@ -103,5 +106,14 @@ public class GraphicServiceImp implements GraphicService {
         g.drawImage(image, 0, 0, newWidth, newHeight, 0, 0, w, h, null);
         g.dispose();
         return newImage;
+    }
+
+    @Override
+    public Optional<GraphicDto> findById(Long id) throws GraphicException {
+        Optional<Graphic> optionalGraphic = graphicRepository.findById(id);
+        if(!optionalGraphic.isPresent()){
+            throw new GraphicException(404, "El Gráfico no se encontro");
+        }
+        return optionalGraphic.map(GraphicTransformer::getGraphicDtoToGraphic);
     }
 }

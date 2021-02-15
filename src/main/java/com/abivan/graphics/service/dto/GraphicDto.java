@@ -13,6 +13,7 @@ public class GraphicDto implements Serializable {
     private Integer width;
     private Integer height;
     private String orientation;
+    private String type;
     @Lob
     private byte[] image;
 }

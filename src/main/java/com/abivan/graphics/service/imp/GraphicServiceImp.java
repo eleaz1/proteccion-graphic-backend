@@ -4,10 +4,12 @@ import com.abivan.graphics.domain.Graphic;
 import com.abivan.graphics.repository.GraphicRepository;
 import com.abivan.graphics.service.GraphicService;
 import com.abivan.graphics.service.dto.GraphicDto;
-import com.abivan.graphics.service.errors.GraphicException;
+import com.abivan.graphics.service.exception.GraphicError;
+import com.abivan.graphics.service.exception.GraphicException;
 import com.abivan.graphics.service.transformer.GraphicTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -39,6 +42,12 @@ public class GraphicServiceImp implements GraphicService {
 
     @Override
     public GraphicDto save(MultipartFile file) throws IOException {
+        if(file.isEmpty()){
+            throw new GraphicException("El archivo no se encontró", new GraphicError(HttpStatus.BAD_REQUEST, "El campo file esta vacio"));
+        }
+        if(!Objects.equals(file.getContentType(), "image/jpeg")){
+            throw new GraphicException("El archivo no tiene la extensión requerida", new GraphicError(HttpStatus.BAD_REQUEST,"El campo tiene una extensión invalida"));
+        }
         BufferedImage image = convertToImage(file);
         String orientation = orientation(image.getHeight(), image.getWidth());
 
@@ -109,11 +118,11 @@ public class GraphicServiceImp implements GraphicService {
     }
 
     @Override
-    public Optional<GraphicDto> findById(Long id) throws GraphicException {
+    public GraphicDto findById(Long id){
         Optional<Graphic> optionalGraphic = graphicRepository.findById(id);
         if(!optionalGraphic.isPresent()){
-            throw new GraphicException(404, "El Gráfico no se encontro");
+            throw new GraphicException("El Gráfico no se encontro", new GraphicError(HttpStatus.NOT_FOUND,"El gráfico no fue encontrado en la DB" ));
         }
-        return optionalGraphic.map(GraphicTransformer::getGraphicDtoToGraphic);
+        return GraphicTransformer.getGraphicDtoToGraphic(optionalGraphic.get());
     }
 }

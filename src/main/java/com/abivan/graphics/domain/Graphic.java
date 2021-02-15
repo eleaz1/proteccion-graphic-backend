@@ -23,6 +23,7 @@ public class Graphic implements Serializable {
     private Integer height;
     private Boolean rezise;
     private String orientation;
+    private String type;
 
     @Lob
     @Column(name = "image")

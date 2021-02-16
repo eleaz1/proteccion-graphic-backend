@@ -2,8 +2,6 @@ package com.abivan.graphics.service.transformer;
 
 import com.abivan.graphics.domain.Graphic;
 import com.abivan.graphics.service.dto.GraphicDto;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.image.BufferedImage;

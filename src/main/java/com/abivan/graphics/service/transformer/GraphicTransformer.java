@@ -28,6 +28,7 @@ public class GraphicTransformer implements Serializable {
         graphicDto.setOrientation(orientation);
         graphicDto.setImage(graphic.getImage());
         graphicDto.setType(graphic.getType());
+        graphicDto.setId(graphic.getId());
         return graphicDto;
     }
 
@@ -38,6 +39,7 @@ public class GraphicTransformer implements Serializable {
         graphicDto.setOrientation(graphic.getOrientation());
         graphicDto.setImage(graphic.getImage());
         graphicDto.setType(graphic.getType());
+        graphicDto.setId(graphic.getId());
         return graphicDto;
     }
 

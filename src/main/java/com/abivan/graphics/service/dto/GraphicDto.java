@@ -10,6 +10,7 @@ import java.io.Serializable;
 @Setter
 public class GraphicDto implements Serializable {
 
+    private Long id;
     private Integer width;
     private Integer height;
     private String orientation;

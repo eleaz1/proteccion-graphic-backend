@@ -51,4 +51,5 @@ public class GraphicControllerTest {
         Assert.assertEquals(response.getStatusCode(), HttpStatus.OK);
         Assert.assertEquals(response.getBody(), GRAPHIC_DTO);
     }
+
 }
